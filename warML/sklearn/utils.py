@@ -7,7 +7,7 @@ from sklearn.model_selection import RandomizedSearchCV
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
 from sklearn.svm import SVC, SVR
-
+from tqdm.auto import tqdm
 from xgboost import XGBRegressor, XGBClassifier
 
 DEFAULT_REGRESSION_MODELS = [
@@ -34,12 +34,13 @@ def cv_regression(X_train: pd.DataFrame, y_train: pd.DataFrame, models=DEFAULT_R
     dfs = []
 
     best_models = dict()
-    for name, model, distributions in models:
+    for name, model, distributions in tqdm(models):
         random_search = RandomizedSearchCV(model,
                                            distributions,
                                            n_iter=20,
                                            refit=True,
                                            n_jobs=None,
+                                           scoring=None,
                                            random_state=666,
                                            **kwargs)
         random_search.fit(X_train, y_train)
