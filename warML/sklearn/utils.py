@@ -30,17 +30,14 @@ DEFAULT_CLASSIFICATION_MODELS = [
 ]
 
 
-def cv_regression(X_train: pd.DataFrame, y_train: pd.DataFrame, models=DEFAULT_REGRESSION_MODELS, **kwargs):
+def RandomizedCV(X_train: pd.DataFrame, y_train: pd.DataFrame, models=DEFAULT_REGRESSION_MODELS, **kwargs):
     dfs = []
 
     best_models = dict()
     for name, model, distributions in tqdm(models):
         random_search = RandomizedSearchCV(model,
                                            distributions,
-                                           n_iter=20,
                                            refit=True,
-                                           n_jobs=None,
-                                           scoring=None,
                                            random_state=666,
                                            **kwargs)
         random_search.fit(X_train, y_train)

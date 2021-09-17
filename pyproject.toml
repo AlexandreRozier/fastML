@@ -10,7 +10,8 @@ dynamic = ["version", "description"]
 dependencies = [
     "pandas",
     "scipy",
-    "sklearn",
+    "scikit-learn",
+    "tqdm"
 ]
 
 
