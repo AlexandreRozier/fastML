@@ -1,4 +1,7 @@
+from dataclasses import dataclass
+
 import pandas as pd
+from pandas import DataFrame
 from scipy.stats import loguniform
 
 from sklearn.ensemble import RandomForestClassifier
@@ -30,27 +33,37 @@ DEFAULT_CLASSIFICATION_MODELS = [
 ]
 
 
-def RandomizedCV(X_train: pd.DataFrame, y_train: pd.DataFrame, models=DEFAULT_REGRESSION_MODELS, **kwargs):
-    dfs = []
+@dataclass
+class RCVOutput():
+    best_models: dict
+    cv_by_model: DataFrame
+    preds: list
 
+
+def RandomizedCV(X_train: pd.DataFrame, y_train: pd.DataFrame, models=DEFAULT_REGRESSION_MODELS, return_preds=False,
+                 **kwargs):
+    cv_by_model = []
+    preds = []
     best_models = dict()
     for name, model, distributions in tqdm(models):
         random_search = RandomizedSearchCV(model,
                                            distributions,
-                                           refit=True,
                                            random_state=666,
                                            **kwargs)
         random_search.fit(X_train, y_train)
 
-        this_df = pd.DataFrame(random_search.cv_results_)
-        this_df['model'] = name
+        cv_df = pd.DataFrame(random_search.cv_results_)
+        cv_df['model'] = name
+        if return_preds:
+            preds.append(random_search.best_estimator_.predict(X_train))
         best_models[name] = random_search.best_estimator_
-        dfs.append(this_df)
-    return best_models, pd.concat(dfs, ignore_index=True)
+        cv_by_model.append(cv_df)
+    return RCVOutput(best_models, pd.concat(cv_by_model,ignore_index=True), preds)
 
 
-def get_best_model(best_models, cv_results):
-    idx = cv_results['mean_test_score'].idxmax()
-    best_entry = cv_results.loc[idx].dropna()
-    best_model = best_models[best_entry.model]
+def get_best_model(out:RCVOutput, metric=None):
+    idx = out.cv_by_model[f'mean_test_{metric}'].idxmax()
+    best_entry = out.cv_by_model.loc[idx].dropna()
+    best_model = out.best_models[best_entry.model]
+
     return best_model
