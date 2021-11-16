@@ -1,7 +1,7 @@
 from sklearn.datasets import load_boston, load_iris
 from sklearn.model_selection import train_test_split
 
-from warML.sklearn.utils import RandomizedCV, get_best_model, DEFAULT_CLASSIFICATION_MODELS, DEFAULT_REGRESSION_MODELS
+from src.warML.sklearn.utils import RandomizedCV, get_best_model, DEFAULT_CLASSIFICATION_MODELS, DEFAULT_REGRESSION_MODELS
 
 
 def test_sklearn_reg():
@@ -30,4 +30,3 @@ def test_sklearn_classif():
     assert entry is not None
     preds = out.preds
     assert len(preds) == len(DEFAULT_CLASSIFICATION_MODELS)
-

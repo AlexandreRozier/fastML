@@ -61,7 +61,7 @@ def RandomizedCV(X_train: pd.DataFrame, y_train: pd.DataFrame, models=DEFAULT_RE
     return RCVOutput(best_models, pd.concat(cv_by_model,ignore_index=True), preds)
 
 
-def get_best_model(out:RCVOutput, metric=None):
+def get_best_model(out:RCVOutput, metric="score"):
     idx = out.cv_by_model[f'mean_test_{metric}'].idxmax()
     best_entry = out.cv_by_model.loc[idx].dropna()
     best_model = out.best_models[best_entry.model]
