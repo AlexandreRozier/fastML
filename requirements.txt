@@ -1,0 +1,9 @@
+sklearn
+wordcloud
+matplotlib
+pandas
+scipy
+tqdm
+xgboost
+nltk
+numpy

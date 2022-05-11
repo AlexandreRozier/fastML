@@ -1,3 +1,4 @@
+from typing import List
 from dataclasses import dataclass
 
 import pandas as pd
@@ -34,21 +35,31 @@ DEFAULT_CLASSIFICATION_MODELS = [
 
 
 @dataclass
-class RCVOutput():
+class CVOutput():
     best_models: dict
     cv_by_model: DataFrame
     preds: list
 
 
-def RandomizedCV(X_train: pd.DataFrame, y_train: pd.DataFrame, models=DEFAULT_REGRESSION_MODELS, return_preds=False,
-                 **kwargs):
+def RandomizedCV(X_train: pd.DataFrame, y_train: pd.DataFrame, models:List[str]=DEFAULT_REGRESSION_MODELS, return_preds=False, **kwargs)->List[CVOutput]:
+    """ Run RandomizedCV with multiple baseline models
+
+    Args:
+        X_train (pd.DataFrame): Same as RandomizedSearchCV X
+        y_train (pd.DataFrame): Same as RandomizedSearchCV y
+        models (List[str], optional): A list of default sklearn models. Defaults to DEFAULT_REGRESSION_MODELS.
+        return_preds (bool, optional): Return preds (takes memory !). Defaults to False.
+        kwargs: RandomizedSearchCV arguments
+    Returns:
+        List[CVOutput]: Outputs of CV
+    """
     cv_by_model = []
     preds = []
     best_models = dict()
     for name, model, distributions in tqdm(models):
         random_search = RandomizedSearchCV(model,
                                            distributions,
-                                           random_state=666,
+                                           random_state=42,
                                            **kwargs)
         random_search.fit(X_train, y_train)
 
@@ -58,10 +69,10 @@ def RandomizedCV(X_train: pd.DataFrame, y_train: pd.DataFrame, models=DEFAULT_RE
             preds.append(random_search.best_estimator_.predict(X_train))
         best_models[name] = random_search.best_estimator_
         cv_by_model.append(cv_df)
-    return RCVOutput(best_models, pd.concat(cv_by_model,ignore_index=True), preds)
+    return CVOutput(best_models, pd.concat(cv_by_model,ignore_index=True), preds)
 
 
-def get_best_model(out:RCVOutput, metric="score"):
+def get_best_model(out:CVOutput, metric="score"):
     idx = out.cv_by_model[f'mean_test_{metric}'].idxmax()
     best_entry = out.cv_by_model.loc[idx].dropna()
     best_model = out.best_models[best_entry.model]
